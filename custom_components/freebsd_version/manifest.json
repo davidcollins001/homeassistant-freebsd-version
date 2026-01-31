@@ -1,0 +1,12 @@
+{
+  "domain": "freebsd_version",
+  "name": "FreeBSD Version",
+  "codeowners": ["@davidcollins001"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/davidcollins001/homeassistant-os_version",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/davidcollins001/homeassistant-os_version/issues",
+  "requirements": ["aiohttp", "aiofiles"],
+  "version": "0.1.0"
+}
