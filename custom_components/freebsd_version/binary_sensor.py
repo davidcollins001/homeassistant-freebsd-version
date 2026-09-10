@@ -9,7 +9,9 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.components.sensor import SensorEntityDescription
 
 from .entity import VersionEntity
-from .const import DEFAULT_NAME, UPDATE_AVAILABLE, DATA_COORDINATOR, DOMAIN
+from .const import (
+    DEFAULT_NAME, RELEASE_UPDATE, PATCH_UPDATE, DATA_COORDINATOR, DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,16 +23,27 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     unique_id = entry.data[CONF_ID].split('@')[0]
 
-    entities = [UpdateVersionStatusSensor(
-        unique_id,
-        coordinator=coordinator,
-        description=SensorEntityDescription(
-            key="freebsd_version",
-            name=UPDATE_AVAILABLE,
-            translation_key="update_available",
-            device_class=BinarySensorDeviceClass.UPDATE,
-        )
-    )]
+    entities = [
+        UpdateVersionStatusSensor(
+            unique_id,
+            coordinator=coordinator,
+            description=SensorEntityDescription(
+                key=RELEASE_UPDATE,
+                name=RELEASE_UPDATE,
+                translation_key=RELEASE_UPDATE,
+                device_class=BinarySensorDeviceClass.UPDATE,
+            )
+        ),
+        UpdateVersionStatusSensor(
+            unique_id,
+            coordinator=coordinator,
+            description=SensorEntityDescription(
+                key=PATCH_UPDATE,
+                name=PATCH_UPDATE,
+                translation_key=PATCH_UPDATE,
+                device_class=BinarySensorDeviceClass.UPDATE,
+            )
+        )]
 
     async_add_entities(entities, update_before_add=True)
 
@@ -44,22 +57,25 @@ class UpdateVersionStatusSensor(VersionEntity, BinarySensorEntity):
         current = self.coordinator.current_version.split('-')
         releases = self.coordinator.advisory_data['releases']
 
-        # check for new (minor/major) release
-        if all(map(ft.partial(op.lt, float(current[0])), releases)):
-            return True
+        if self.entity_description.key == RELEASE_UPDATE:
+            # check for new (minor/major) release
+            return all(map(ft.partial(op.lt, float(current[0])), releases))
 
-        # check newer patch version
-        current_p = int((current[2] if len(current) == 3 else "p0")[1])
-        latest_p = len(set(map(op.itemgetter(1), self.coordinator.advisory_data)))
+        if self.entity_description.key == PATCH_UPDATE:
+            # check newer patch version
+            current_p = int((current[2] if len(current) == 3 else "p0")[1])
+            latest_p = len(set(map(op.itemgetter(1), self.coordinator.advisory_data)))
 
-        if current_p < latest_p:
-            return True
+            return current_p < (latest_p - 1)
 
         return False
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return extra state attributes of this sensor."""
-        errata = self.coordinator.advisory_data['errata']
-        return {advisory: f"{date}: {topic.replace('\n', ' ')}"
-                for advisory, date, topic in errata}
+        if self.entity_description.key == PATCH_UPDATE:
+            errata = self.coordinator.advisory_data['errata']
+            return {advisory: f"{date}: {topic.replace('\n', ' ')}"
+                    for advisory, date, topic in errata}
+        if self.entity_description.key == RELEASE_UPDATE:
+            return {'releases': self.coordinator.advisory_data['releases']}

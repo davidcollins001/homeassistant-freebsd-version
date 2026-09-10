@@ -1,13 +1,16 @@
 {
     "entity": {
         "binary_sensor": {
-          "update_available": {
-            "name": "Update Available"
+          "release_update_available": {
+            "name": "Release Update"
+          },
+          "patch_update_available": {
+            "name": "Patch Update"
           }
         },
         "sensor": {
           "freebsd_version": {
-            "name": "Freebsd Version"
+            "name": "Version"
           }
         }
     }

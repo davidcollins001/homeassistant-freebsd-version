@@ -5,7 +5,8 @@ DATA_COORDINATOR = "coordinator"
 DEFAULT_UPDATE_INTERVAL = timedelta(hours=12)
 
 DEFAULT_NAME = "freebsd_version_944aa3fb"
-UPDATE_AVAILABLE = "update_available"
+RELEASE_UPDATE = "release_update_available"
+PATCH_UPDATE = "patch_update_available"
 VERSION = "VERSION"
 
 FREEBSD = "FreeBSD"
