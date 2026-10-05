@@ -55,6 +55,7 @@ class UpdateVersionStatusSensor(VersionEntity, BinarySensorEntity):
     def is_on(self):
         # expect version like 15.0-RELEASE or 15.0-RELEASE-p1
         current = self.coordinator.current_version.split('-')
+        errata = self.coordinator.advisory_data['errata']
         releases = self.coordinator.advisory_data['releases']
 
         if self.entity_description.key == RELEASE_UPDATE:
@@ -63,10 +64,10 @@ class UpdateVersionStatusSensor(VersionEntity, BinarySensorEntity):
 
         if self.entity_description.key == PATCH_UPDATE:
             # check newer patch version
-            current_p = int((current[2] if len(current) == 3 else "p0")[1])
-            latest_p = len(set(map(op.itemgetter(1), self.coordinator.advisory_data)))
+            current_p = int((current[2] if len(current) == 3 else "p0")[1:])
+            latest_p = len(set(map(op.itemgetter(1), errata)))
 
-            return current_p < (latest_p - 1)
+            return current_p < latest_p
 
         return False
 
